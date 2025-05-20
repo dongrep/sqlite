@@ -10,7 +10,7 @@ ExecuteResult execute_insert(Statement *statement, Table *table)
 
   Row *row_to_insert = &(statement->row_to_insert);
   serialze_row(row_to_insert, row_slot(table, table->num_rows));
-  print_row(row_to_insert);
+  table->num_rows += 1;
   return EXECUTE_SUCCESS;
 }
 

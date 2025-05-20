@@ -1,0 +1,35 @@
+# Compiled object files
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Debug files
+*.dSYM/
+*.log
+
+# RSpec specific
+.rspec
+coverage/
+spec/examples.txt
+
+# General
+*.swp
+*.swo
+*.tmp
+*.bak
+*.old
+
+.vscode

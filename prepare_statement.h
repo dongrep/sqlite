@@ -8,9 +8,12 @@ typedef enum
 {
   PREPARE_SUCCESS,
   PREPARE_SYNTAX_ERROR,
+  PREPARE_STRING_TO_LONG,
+  PREPARE_NEGATIVE_ID,
   PREPARE_UNRECOGNIZED_STATEMENT,
 } PrepareResult;
 
+PrepareResult prepare_insert(InputBuffer *input_buffer, Statement *statement);
 PrepareResult prepare_statement(InputBuffer *input_buffer, Statement *statement);
 
 #endif
