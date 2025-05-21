@@ -1,0 +1,48 @@
+#include "cursor.h"
+#include "row.h"
+#include <stdbool.h>
+
+Cursor *table_start(Table *table)
+{
+  Cursor *cursor = malloc(sizeof(Cursor));
+  cursor->table = table;
+  cursor->row_num = 0;
+  cursor->end_of_table = (table->num_rows == 0);
+
+  return cursor;
+}
+
+Cursor *table_end(Table *table)
+{
+  Cursor *cursor = malloc(sizeof(Cursor));
+  cursor->table = table;
+  cursor->row_num = table->num_rows;
+  cursor->end_of_table = true;
+
+  return cursor;
+}
+
+/**
+ * Retrieves a pointer to the memory location of the current row in the table.
+ *
+ * @param cursor A pointer to the Cursor structure pointing to the current row.
+ * @return A void pointer to the memory location of the current row.
+ */
+void *cursor_value(Cursor *cursor)
+{
+  uint32_t row_num = cursor->row_num;
+  uint32_t page_num = row_num / ROWS_PER_PAGE;
+  void *page = get_page(cursor->table->pager, page_num);
+  uint32_t row_offset = row_num % ROWS_PER_PAGE;
+  uint32_t bytes_offset = row_offset * ROW_SIZE;
+  return page + bytes_offset;
+}
+
+void cursor_advance(Cursor *cursor)
+{
+  cursor->row_num += 1;
+  if (cursor->row_num >= cursor->table->num_rows)
+  {
+    cursor->end_of_table = true;
+  }
+}

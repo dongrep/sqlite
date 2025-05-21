@@ -6,8 +6,7 @@
 #include <errno.h>     // for errno if checking errors
 #include <stdio.h>     // for printf() and perror()
 #include <stdlib.h>    // for exit()
-#include <unistd.h> 
-
+#include <unistd.h>
 
 Table *db_open(const char *filename)
 {
@@ -28,22 +27,6 @@ void free_table(Table *table)
     free(table->pager->pages[i]);
   }
   free(table);
-}
-
-/**
- * Retrieves a pointer to the memory location of a specific row in the table.
- *
- * @param table A pointer to the Table structure containing the rows.
- * @param row_num The index of the row to retrieve (0-based).
- * @return A void pointer to the memory location of the specified row.
- */
-void *row_slot(Table *table, uint32_t row_num)
-{
-  uint32_t page_num = row_num / ROWS_PER_PAGE;
-  void *page = get_page(table->pager, page_num);
-  uint32_t row_offset = row_num % ROWS_PER_PAGE;
-  uint32_t bytes_offset = row_offset * ROW_SIZE;
-  return page + bytes_offset;
 }
 
 void db_close(Table *table)

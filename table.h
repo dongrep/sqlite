@@ -16,7 +16,6 @@ typedef struct
 
 Table *db_open(const char *filename);
 void free_table(Table *table);
-void *row_slot(Table *table, uint32_t row_num);
 void db_close(Table *table);
 
 #endif
