@@ -1,7 +1,8 @@
-#include "input_buffer.h"
-#include "table.h"
 #ifndef META_COMMAND_H
 #define META_COMMAND_H
+
+#include "input_buffer.h"
+#include "table.h"
 
 typedef enum
 {
