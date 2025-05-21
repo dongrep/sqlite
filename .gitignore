@@ -33,3 +33,5 @@ spec/examples.txt
 *.old
 
 .vscode
+
+.db
