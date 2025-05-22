@@ -8,7 +8,8 @@
 typedef struct
 {
   Table *table;
-  uint32_t row_num;
+  uint32_t page_num;
+  uint32_t cell_num;
   bool end_of_table; // Idicates a pos one past the last element
 } Cursor;
 

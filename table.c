@@ -1,6 +1,7 @@
 #include "table.h"
 #include "row.h"
 #include "pager.h"
+#include "b_tree.h"
 #include <fcntl.h>     // for open(), O_RDONLY, O_RDWR, etc.
 #include <sys/types.h> // for types like off_t
 #include <errno.h>     // for errno if checking errors
@@ -10,12 +11,19 @@
 
 Table *db_open(const char *filename)
 {
-  Pager *pager = open_pager(filename);
+  Pager *pager = pager_open(filename);
   uint32_t num_rows = pager->file_length / ROW_SIZE;
 
   Table *table = (Table *)malloc(sizeof(Table));
   table->pager = pager;
-  table->num_rows = num_rows;
+  table->root_page_num = 0;
+
+  if (pager->num_pages == 0)
+  {
+    // Database is empty. Initialze page 0 as the leaf node.
+    void *root_node = get_page(pager, 0);
+    initialize_leaf_node(root_node);
+  }
 
   return table;
 }
@@ -32,32 +40,17 @@ void free_table(Table *table)
 void db_close(Table *table)
 {
   Pager *pager = table->pager;
-  uint32_t num_full_pages = table->num_rows / ROW_SIZE;
 
-  for (uint32_t i = 0; i < num_full_pages; i++)
+  for (uint32_t i = 0; i < pager->num_pages; i++)
   {
     if (pager->pages[i] == NULL)
     {
       continue;
     }
 
-    pager_flush(pager, i, PAGE_SIZE);
+    pager_flush(pager, i);
     free(pager->pages[i]);
     pager->pages[i] = NULL;
-  }
-
-  // There maybe a partial page remaining at the end of the file
-  // This won't be needed when we switch to B-tree
-  uint32_t num_of_remaining_rows = table->num_rows % ROW_SIZE;
-  if (num_of_remaining_rows > 0)
-  {
-    uint32_t page_num = num_full_pages;
-    if (pager->pages[page_num] != NULL)
-    {
-      pager_flush(pager, page_num, num_of_remaining_rows * ROW_SIZE);
-      free(pager->pages[page_num]);
-      pager->pages[page_num] = NULL;
-    }
   }
 
   int result = close(pager->file_descriptor);

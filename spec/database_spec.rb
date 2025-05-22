@@ -1,11 +1,11 @@
 describe 'database' do
   before do
-    `rm -rf test.db`
+    `rm -rf test_new.db`
   end
 
   def run_script(commands)
     raw_output = nil
-    IO.popen(["./db", "test.db"], "r+") do |pipe|
+    IO.popen(["./db", "test_new.db"], "r+") do |pipe|
       commands.each do |command|
       pipe.puts command
       end
@@ -32,14 +32,35 @@ describe 'database' do
     ])
   end
 
-  it 'prints error message when table is full' do
-    script = (1..1401).map do |i|
-      "insert #{i} person#{i} person#{i}@exampl.com"
+  # it 'prints an error message when table is full' do
+  #   script = []
+  
+  #   1401.times do |i|
+  #     script << "insert #{i} user#{i} person#{i}@example.com"
+  #   end
+  
+  #   script << ".exit"
+  
+  #   result = run_script(script)
+  
+  #   expect(result[-2]).to eq('Error: Table full.')
+  # end
+
+  it 'prints an error message when leaf node is full' do
+    script = []
+  
+    14.times do |i|
+      script << "insert #{i} user#{i} person#{i}@example.com"
     end
+  
     script << ".exit"
+  
     result = run_script(script)
-    expect(result[-2]).to eq('db > Error: Table full.')
+  
+    expect(result[-1]).to eq('db > Need to implement splitting a leaf node.')
   end
+
+
 
   it "allows to store maximum length strings" do
     long_username = "a"*32
@@ -112,4 +133,43 @@ describe 'database' do
     ])
   end
 
+  it 'prints constants' do
+    script = [
+      ".constants",
+      ".exit",
+    ]
+    result = run_script(script)
+
+    expect(result).to match_array([
+      "db > Constants:",
+      "ROW_SIZE: 293",
+      "COMMON_NODE_HEADER_SIZE: 6",
+      "LEAF_NODE_HEADER_SIZE: 10",
+      "LEAF_NODE_CELL_SIZE: 297",
+      "LEAF_NODE_SPACE_FOR_CELLS: 4086",
+      "LEAF_NODE_MAX_CELLS: 13",
+      "db > ",
+    ])
+  end
+
+  it 'allows printing out the structure of a one-node btree' do
+    script = [3,1,2].map do |i|
+      "insert #{i} person#{i} person#{i}@example.com"
+    end
+    script << ".btree"
+    script << ".exit"
+
+    result = run_script(script)
+    expect(result).to match_array([
+      "db > Executed.",
+      "db > Executed.",
+      "db > Executed.",
+      "db > Tree:",
+      "leaf (size 3)",
+      "  - 0 : 3",
+      "  - 1 : 1",
+      "  - 2 : 2",
+      "db > "
+    ])
+  end
 end

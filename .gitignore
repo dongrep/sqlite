@@ -34,4 +34,5 @@ spec/examples.txt
 
 .vscode
 
-.db
+*.db
+.DS_Store
