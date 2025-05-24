@@ -22,7 +22,7 @@ typedef struct
 #define EMAIL_OFFSET (USERNAME_OFFSET + USERNAME_SIZE)
 #define ROW_SIZE (ID_SIZE + USERNAME_SIZE + EMAIL_SIZE)
 
-void serialze_row(Row *source, void *destination);
+void serialize_row(Row *source, void *destination);
 void deserialize_row(void *source, Row *destination);
 void print_row(Row *row);
 

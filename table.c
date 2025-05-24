@@ -8,6 +8,7 @@
 #include <stdio.h>     // for printf() and perror()
 #include <stdlib.h>    // for exit()
 #include <unistd.h>
+#include <stdbool.h>
 
 Table *db_open(const char *filename)
 {
@@ -23,6 +24,7 @@ Table *db_open(const char *filename)
     // Database is empty. Initialze page 0 as the leaf node.
     void *root_node = get_page(pager, 0);
     initialize_leaf_node(root_node);
+    set_node_root(root_node, true);
   }
 
   return table;

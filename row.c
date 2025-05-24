@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void serialze_row(Row *source, void *destination)
+void serialize_row(Row *source, void *destination)
 {
   memcpy(destination + ID_OFFSET, &(source->id), ID_SIZE);
   memcpy(destination + USERNAME_OFFSET, &(source->username), USERNAME_SIZE);
