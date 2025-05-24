@@ -38,6 +38,40 @@ void initialize_internal_node(void *node)
   *internal_node_num_keys(node) = 0;
 }
 
+Cursor *internal_node_find(Table *table, uint32_t page_num, uint32_t key)
+{
+  void *node = get_page(table->pager, page_num);
+  uint32_t num_keys = *internal_node_num_keys(node);
+
+  uint32_t min_index = 0;
+  uint32_t max_index = num_keys; // There's one more child than keys
+
+  while (min_index != max_index)
+  {
+    uint32_t index = min_index + (max_index - min_index) / 2;
+    uint32_t key_to_right = *internal_node_key(node, index);
+    if (key > key_to_right)
+    {
+      min_index = index + 1;
+    }
+    else
+    {
+      max_index = index;
+    }
+  }
+
+  uint32_t child_num = *internal_node_child(node, min_index);
+  void *child = get_page(table->pager, child_num);
+  switch (get_node_type(child))
+  {
+  case NODE_INTERNAL:
+    return internal_node_find(table, child_num, key);
+    break;
+  case NODE_LEAF:
+    return leaf_node_find(table, child_num, key);
+  }
+}
+
 void leaf_node_insert(Cursor *cursor, uint32_t *key, Row *value)
 {
   void *node = get_page(cursor->table->pager, cursor->page_num);
