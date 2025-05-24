@@ -22,4 +22,4 @@ jobs:
           gcc -o db *.c
       - name: Run tests
         run: |
-          rspec
+          bundle exec rspec

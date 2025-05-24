@@ -2,6 +2,7 @@
 #include "row.h"
 #include "b_tree.h"
 #include <stdbool.h>
+#include <stdio.h>
 
 /**
  * Creates a cursor pointing to the start of the table.
@@ -31,34 +32,25 @@ Cursor *table_start(Table *table)
   return cursor;
 }
 
-/**
- * Creates a cursor pointing to the end of the table.
- *
- * @param table A pointer to the Table structure representing the table.
- * @return A pointer to the Cursor structure pointing to the end of the table.
- */
-Cursor *table_end(Table *table)
+/*
++Return the position of the given key.
++If the key is not present, return the position
++where it should be inserted
++*/
+Cursor *table_find(Table *table, uint32_t key_to_insert)
 {
-  // Allocate memory for a new Cursor structure
-  Cursor *cursor = malloc(sizeof(Cursor));
+  uint32_t root_page_num = table->root_page_num;
+  void *root_node = get_page(table->pager, root_page_num);
 
-  // Initialize the cursor to point to the table's root page
-  cursor->table = table;
-  cursor->page_num = table->root_page_num;
-
-  // Retrieve the root node of the table
-  void *root_node = get_page(table->pager, table->root_page_num);
-
-  // Get the number of cells in the root node
-  uint32_t num_cells = *leaf_node_num_cells(root_node);
-
-  // Set the cursor's cell number to the number of cells in the root node
-  cursor->cell_num = num_cells;
-
-  // Mark the cursor as at the end of the table
-  cursor->end_of_table = true;
-
-  return cursor;
+  if (get_node_type(root_node) == NODE_LEAF)
+  {
+    return leaf_node_find(table, root_page_num, key_to_insert);
+  }
+  else
+  {
+    printf("Need to implement searching internal nodes.\n");
+    exit(EXIT_FAILURE);
+  }
 }
 
 /**

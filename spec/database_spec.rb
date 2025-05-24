@@ -57,7 +57,7 @@ describe 'database' do
   
     result = run_script(script)
   
-    expect(result[-1]).to eq('db > Need to implement splitting a leaf node.')
+    expect(result[-2]).to eq('db > Error: Table full.')
   end
 
 
@@ -166,9 +166,9 @@ describe 'database' do
       "db > Executed.",
       "db > Tree:",
       "leaf (size 3)",
-      "  - 0 : 3",
-      "  - 1 : 1",
-      "  - 2 : 2",
+      "  - 0 : 1",
+      "  - 1 : 2",
+      "  - 2 : 3",
       "db > "
     ])
   end
