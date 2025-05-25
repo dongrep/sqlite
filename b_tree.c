@@ -9,6 +9,11 @@ uint32_t *leaf_node_num_cells(void *node)
   return node + LEAF_NODE_NUM_CELLS_OFFSET;
 }
 
+uint32_t *leaf_node_next_leaf(void *node)
+{
+  return node + LEAF_NODE_NEXT_LEAF_OFFSET;
+}
+
 void *leaf_node_cell(void *node, uint32_t cell_num)
 {
   return node + LEAF_NODE_HEADER_SIZE + cell_num * LEAF_NODE_CELL_SIZE;
@@ -29,6 +34,7 @@ void initialize_leaf_node(void *node)
   set_node_type(node, NODE_LEAF);
   set_node_root(node, false);
   *leaf_node_num_cells(node) = 0;
+  *leaf_node_next_leaf(node) = 0; // 0 represents no sibling
 }
 
 void initialize_internal_node(void *node)
@@ -78,7 +84,7 @@ void leaf_node_insert(Cursor *cursor, uint32_t *key, Row *value)
   uint32_t num_cells = *leaf_node_num_cells(node);
   if (num_cells >= LEAF_NODE_MAX_CELLS)
   {
-    leaf_node_split_and_insert(cursor, key, value);
+    leaf_node_split_and_insert(cursor, *key, value);
     return;
   }
 
@@ -95,7 +101,7 @@ void leaf_node_insert(Cursor *cursor, uint32_t *key, Row *value)
   serialize_row(value, leaf_node_value(node, cursor->cell_num));
 }
 
-void leaf_node_split_and_insert(Cursor *cursor, uint32_t *key, Row *value)
+void leaf_node_split_and_insert(Cursor *cursor, uint32_t key, Row *value)
 {
   /*
 +  Create a new node and move half the cells over.
@@ -107,13 +113,14 @@ void leaf_node_split_and_insert(Cursor *cursor, uint32_t *key, Row *value)
   uint32_t new_page_num = get_unused_page_num(cursor->table->pager);
   void *new_node = get_page(cursor->table->pager, new_page_num);
   initialize_leaf_node(new_node);
+  *leaf_node_next_leaf(new_node) = *leaf_node_next_leaf(old_node);
+  *leaf_node_next_leaf(old_node) = new_page_num;
 
   /*
 +  All existing keys plus new key should be divided
 +  evenly between old (left) and new (right) nodes.
 +  Starting from the right, move each key to correct position.
 +  */
-
   for (int32_t i = LEAF_NODE_MAX_CELLS; i >= 0; i--)
   {
     void *destination_node;
@@ -127,11 +134,26 @@ void leaf_node_split_and_insert(Cursor *cursor, uint32_t *key, Row *value)
     }
 
     uint32_t index_within_node = i % LEAF_NODE_LEFT_SPLIT_COUNT;
-    void *destination = leaf_node_cell(destination_node, index_within_node);
+    void *destination;
+    if (i < LEAF_NODE_LEFT_SPLIT_COUNT)
+    {
+      // Left split node
+      destination_node = old_node;
+      index_within_node = i;
+    }
+    else
+    {
+      // Right split node
+      destination_node = new_node;
+      index_within_node = i - LEAF_NODE_LEFT_SPLIT_COUNT;
+    }
+    destination = leaf_node_cell(destination_node, index_within_node);
 
     if (i == cursor->cell_num)
     {
-      serialize_row(value, destination);
+      serialize_row(value,
+                    leaf_node_value(destination_node, index_within_node));
+      *leaf_node_key(destination_node, index_within_node) = key;
     }
     else if (i > cursor->cell_num)
     {

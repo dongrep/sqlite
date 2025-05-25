@@ -4,28 +4,13 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-/**
- * Creates a cursor pointing to the start of the table.
- *
- * @param table A pointer to the Table structure representing the table.
- * @return A pointer to the Cursor structure pointing to the start of the table.
- */
 Cursor *table_start(Table *table)
 {
-  // Allocate memory for a new Cursor structure
-  Cursor *cursor = malloc(sizeof(Cursor));
-
-  // Initialize the cursor to point to the table's root page
-  cursor->table = table;
-  cursor->page_num = table->root_page_num;
-  cursor->cell_num = 0;
-
-  // Retrieve the root node of the table
-  void *root_node = get_page(table->pager, table->root_page_num);
+  Cursor *cursor = table_find(table, 0);
+  void *node = get_page(table->pager, cursor->page_num);
 
   // Get the number of cells in the root node
-  uint32_t num_cells = *leaf_node_num_cells(root_node);
-
+  uint32_t num_cells = *leaf_node_num_cells(node);
   // If the root node has no cells, mark the cursor as at the end of the table
   cursor->end_of_table = (num_cells == 0);
 
@@ -68,11 +53,21 @@ void *cursor_value(Cursor *cursor)
 void cursor_advance(Cursor *cursor)
 {
   uint32_t page_num = cursor->page_num;
-  void *page = get_page(cursor->table->pager, page_num);
+  void *node = get_page(cursor->table->pager, page_num);
 
   cursor->cell_num += 1;
-  if (cursor->cell_num >= (*leaf_node_num_cells(page)))
+  if (cursor->cell_num >= (*leaf_node_num_cells(node)))
   {
-    cursor->end_of_table = true;
+    // Advance to the next leaf
+    uint16_t next_page_num = *leaf_node_next_leaf(node);
+    if (next_page_num == 0)
+    {
+      cursor->end_of_table = true;
+    }
+    else
+    {
+      cursor->page_num = next_page_num;
+      cursor->cell_num = 0;
+    }
   }
 }

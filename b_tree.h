@@ -30,7 +30,12 @@ static const uint32_t COMMON_NODE_HEADER_SIZE = NODE_TYPE_SIZE + IS_ROOT_SIZE + 
 */
 static const uint32_t LEAF_NODE_NUM_CELLS_SIZE = sizeof(uint32_t);
 static const uint32_t LEAF_NODE_NUM_CELLS_OFFSET = COMMON_NODE_HEADER_SIZE;
-static const uint32_t LEAF_NODE_HEADER_SIZE = COMMON_NODE_HEADER_SIZE + LEAF_NODE_NUM_CELLS_SIZE;
+static const uint32_t LEAF_NODE_NEXT_LEAF_SIZE = sizeof(uint32_t);
+static const uint32_t LEAF_NODE_NEXT_LEAF_OFFSET =
+    LEAF_NODE_NUM_CELLS_OFFSET + LEAF_NODE_NUM_CELLS_SIZE;
+static const uint32_t LEAF_NODE_HEADER_SIZE = COMMON_NODE_HEADER_SIZE +
+                                              LEAF_NODE_NUM_CELLS_SIZE +
+                                              LEAF_NODE_NEXT_LEAF_SIZE;
 
 /*
   LEAF NODE BODY LAYOUT
@@ -46,12 +51,13 @@ static const uint32_t LEAF_NODE_RIGHT_SPLIT_COUNT = (LEAF_NODE_MAX_CELLS + 1) / 
 static const uint32_t LEAF_NODE_LEFT_SPLIT_COUNT = (LEAF_NODE_MAX_CELLS + 1) - LEAF_NODE_RIGHT_SPLIT_COUNT;
 
 uint32_t *leaf_node_num_cells(void *node);
+uint32_t *leaf_node_next_leaf(void *node);
 void *leaf_node_cell(void *node, uint32_t cell_num);
 uint32_t *leaf_node_key(void *node, uint32_t cell_num);
 void *leaf_node_value(void *node, uint32_t cell_num);
 void initialize_leaf_node(void *node);
 void leaf_node_insert(Cursor *cursor, uint32_t *key, Row *value);
-void leaf_node_split_and_insert(Cursor *cursor, uint32_t *key, Row *value);
+void leaf_node_split_and_insert(Cursor *cursor, uint32_t key, Row *value);
 Cursor *leaf_node_find(Table *table, uint32_t page_num, uint32_t key_to_insert);
 NodeType get_node_type(void *node);
 void set_node_type(void *node, NodeType nodeType);
